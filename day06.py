@@ -1,7 +1,7 @@
 i = int
 
 DAY = "06"
-EXPECTED = "5:4"
+EXPECTED = {(5,4)}
 
 def pre_process(n):
     return n
@@ -22,92 +22,76 @@ def get_distance(val):
 def solve(d):
 
     safe = []
-
-    [[safe.extend([(y, x)]) for x in range(w)] for y in range(h)]
-
+    [[safe.extend([(x, y)]) for x in range(w)] for y in range(h)]
     safe = set(safe)
 
-    
+    dangerous = set()
+
+    skip = False
     
     for roid in d:
-        xo, yo, xvel, yvel = map(float, roid.split())
-        print(xo, yo, xvel, yvel)
-        skip = False
+        x_origin, y_origin, x_vel, y_vel = map(int, roid.split())
 
-        if xvel == 0 == yvel:
-            skip = True
+        #print(x_origin, y_origin, x_vel, y_vel)
 
-        elif xo > 99 and xvel >= 0:
+        if x_vel == 0 == y_vel:
             skip = True
-        elif yo > 99 and yvel >= 0:
+        elif x_origin > 99 and x_vel >= 0:
             skip = True
-        elif xo < 0 and xvel <= 0:
+        elif y_origin > 99 and y_vel >= 0:
             skip = True
-        elif yo < 0 and yvel <= 0:
+        elif x_origin < 0 and x_vel <= 0:
             skip = True
-
+        elif y_origin < 0 and y_vel <= 0:
+            skip = True
         if skip:
-            print("Will never cross the region")
+
             continue
+
+        x_path, y_path = [x_origin], [y_origin]
+
+        
+        max_ = 5000
+        min_ = -5000       
+
+        if x_vel > 0:
+            x_path = list(range(x_origin, max_, x_vel))
+        elif x_vel < 0:
+            x_path = list(range(x_origin, min_, x_vel))
+        if y_vel > 0:
+            y_path = list(range(y_origin, max_, y_vel))
+        elif y_vel < 0:
+            y_path = list(range(y_origin, min_, y_vel))
             
-        
-        x_distance = get_distance(xo)
+        diff = len(x_path) - len(y_path)
 
-        y_distance = get_distance(yo)
+        ## ensure zip will work - one path can't be shorter else will truncate
 
-
-        if x_distance == y_distance:
-            if yvel == 0:
-                x = 0
+        if diff > 0:
+            if y_vel == 0:
+                y_path = y_path + [y_origin for _ in range(abs(diff))]
             else:
-                x = 0 if xvel > 0 else 99
-
-            if xvel == 0:
-                y = 0
-
-            else:            
-                y = 0 if yvel > 0 else 99
-
-        else:
-
-            best = min(x_distance, y_distance)
-                
-                
-            yo = yo + best * yvel
-            xo = xo + best * xvel
-                
+                limit = max_ if y_vel > 0 else min_
+                y_path = y_path + list(range(y_path[-1]+1, limit, y_vel))
+        elif diff < 0:
+            if x_vel == 0:
+                x_path = x_path + [x_origin for _ in range(abs(diff))]
+            else:
+                limit = max_ if y_vel > 0 else min_
+                x_path = x_path + list(range(x_path[-1]+1, limit,  x_vel))
 
 
-            x = xo
-            y = yo
+        path = zip(x_path, y_path)
 
-        print("Will cross at", x, y)
+        [dangerous.add((x, y)) for x, y in path if 0<=x<w and 0<=y<h]
+        print(len(dangerous))
 
-        while True:
-            x += xvel
-            y += yvel
+    return safe.difference(dangerous)
 
-                       
-
-            x_limit = (x < 0) if xvel < 0 else x > 99
-            y_limit = (y < 0) if yvel < 0 else y > 99
-
-
-            if x_limit or y_limit:
-                break
-
-            if 0<=x<=99 and 0<=y<=99:
-                coord = (x, y)
-                if coord in safe:
-                    safe.remove(coord)
-
-
-        
-    print(safe)
-w, h = 8, 8
-result = solve(load("test"))
-if result == EXPECTED:
-    w, y = 100, 100
+#w, h = 8, 8
+#result = solve(load("test"))
+if True: #result == EXPECTED:
+    w, h = 100, 100
     print("TEST PASSED. FINAL RESULT:")
     print(solve(load("day")))
 else:
