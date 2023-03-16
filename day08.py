@@ -2,71 +2,37 @@ i = int
 
 DAY = "08"
 EXPECTED = 43
+from itertools import permutations
+from math import inf as INF
 
 def pre_process(n):
-    return n
+    return list(map(int, n.split()))
 
 def load(pre):
     with open(f"{pre}{DAY}.txt") as f:
-        return map(pre_process, f.read().splitlines())
+        return list(map(pre_process, f.read().splitlines()))
 
         
 
 def solve(data):
 
-    class Node:
+    best = INF
 
-        def __init__(self, i):
-            self.label = i
-            self.connections = []
-            self.table = []
+    for p in permutations(range(len(data))):
 
-    graph = {}
+        tot = 0
+        log = ""
+        for node, neighbour in zip(p, p[1:]+(p[0],)):
+            weight = data[node][neighbour]
+            log += (f"travel from {node} to {neighbour} costs {weight}\n")
+            tot += weight
 
-    ORIGIN = 0
+        if tot < best:
+            best = tot
+            info = log
 
-    
-    graph {i+1:Node(i+1) for i in range(len(d))}
-
-    for i, row in enumerate(d):
-        node = i + 1
-
-        for j, weight in enumerate(row.split()):
-            neighbour = j
-
-            if node == neighbour:
-                continue
-
-            graph[node].connections.append((graph[neighbour], int(weight)))
-
-
-    ## find shortest path for all nodes
-
-    
-    for node in graph:
-
-        node.table = {n:{"cost":INF if n.label!=ORIGIN else 0, "prev":None} for n in graph}
-
-        unvisited = set(graph.values())
-
-        for connection in node.connections:
-            prev = node.table[connection]
-
-            neighbour, weight = connection
-
-            if neighbour in visited:
-                continue
-
-            cost = weight + node.table[node]["cost"]
-
-            if cost < node.table[neighbour]["cost"]:
-
-                node.table[neighbour]["cost"] = cost
-                node.table[neighbour]["prev"] = node
-
-            
-        
-        
+    print(info)
+    return tot
 
 result = solve(load("test"))
 if result == EXPECTED:
